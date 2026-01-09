@@ -148,18 +148,27 @@ bin/rubocop
 
 ```
 music-bot/
-├── .env                    # Bot token (git-ignored)
-├── .env.example           # Environment variable template
-├── .gitignore            # Git ignore patterns
-├── Gemfile               # Ruby dependencies
-├── Gemfile.lock          # Locked dependency versions
-├── bot.rb                # Main bot application
-├── spec/                 # RSpec tests
-│   ├── spec_helper.rb   # RSpec configuration
-│   └── bot_spec.rb      # Bot tests
+├── .env                         # Bot token (git-ignored)
+├── .env.example                # Environment variable template
+├── .gitignore                  # Git ignore patterns
+├── Gemfile                     # Ruby dependencies
+├── Gemfile.lock                # Locked dependency versions
+├── bot.rb                      # Main bot executable (entry point)
+├── lib/                        # Library code
+│   ├── music_bot.rb           # Main MusicBot class
+│   └── music_bot/             # Component classes
+│       ├── config.rb          # Configuration constants
+│       ├── commands.rb        # All command classes
+│       ├── queue_manager.rb   # Queue management
+│       ├── youtube_service.rb # YouTube/yt-dlp operations
+│       ├── audio_player.rb    # Voice connection & playback
+│       └── content_filter.rb  # Content policy checking
+├── spec/                       # RSpec tests
+│   ├── spec_helper.rb         # RSpec configuration
+│   └── bot_spec.rb            # Bot tests
 ├── docs/
-│   └── TECHNICAL_SPEC.md # Technical specification
-└── README.md             # This file
+│   └── TECHNICAL_SPEC.md      # Technical specification
+└── README.md                   # This file
 ```
 
 ## How It Works
