@@ -10,7 +10,14 @@ RUN apt-get update && apt-get install -y \
     git \
     python3 \
     python3-pip \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Deno (JavaScript runtime for yt-dlp)
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="${DENO_INSTALL}/bin:${PATH}"
 
 # Install yt-dlp
 RUN pip3 install --no-cache-dir --break-system-packages yt-dlp

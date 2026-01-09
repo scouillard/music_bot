@@ -62,7 +62,6 @@ class MusicBot
           song[:event].respond "Now Playing:\n**#{song[:title]}**"
 
           # Download audio file to avoid buffering/streaming issues
-          logger.info "Downloading audio for: #{song[:url]}"
           audio_file = youtube_service.download_audio(song[:url], @temp_dir)
 
           unless audio_file
