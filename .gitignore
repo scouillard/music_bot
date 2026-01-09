@@ -1,0 +1,23 @@
+# Environment files
+.env
+
+# Bundler
+Gemfile.lock
+.bundle/
+vendor/bundle/
+
+# RSpec
+.rspec_status
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
