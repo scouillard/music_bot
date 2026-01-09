@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/music_bot'
+
+# Check for required environment variables
+unless ENV['DISCORD_BOT_TOKEN']
+  puts 'Error: DISCORD_BOT_TOKEN environment variable not set'
+  puts 'Please set your Discord bot token in the .env file'
+  exit 1
+end
+
+# Get configuration from environment
+token = ENV.fetch('DISCORD_BOT_TOKEN', nil)
+prefix = ENV.fetch('COMMAND_PREFIX', '$')
+
+# Create and run the bot
+begin
+  bot = MusicBot::Bot.new(token: token, prefix: prefix)
+  bot.run
+rescue Interrupt
+  puts "\nShutting down bot..."
+  exit 0
+rescue StandardError => e
+  puts "Fatal error: #{e.message}"
+  puts e.backtrace
+  exit 1
+end
