@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Test files
+spec/
+.rspec
+
+# Rubocop
+.rubocop.yml
+
+# Documentation
+README.md
+SETUP_NOTES.md
+docs/
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+*.tmp
