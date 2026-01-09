@@ -1,0 +1,29 @@
+# Bot Configuration Settings
+
+bot:
+  # Maximum audio file size in MB
+  max_download_size: 100
+
+  # Audio quality preference (bestaudio, worst, or specific format)
+  audio_quality: 'bestaudio'
+
+  # Timeout for downloads in seconds
+  download_timeout: 300
+
+  # Maximum queue size (for future playlist feature)
+  max_queue_size: 50
+
+voice:
+  # Auto-leave voice channel after inactivity (seconds)
+  auto_leave_timeout: 300
+
+  # Default volume (0-100)
+  default_volume: 50
+
+messages:
+  # Bot response messages
+  joining_channel: 'Joining voice channel...'
+  playing: 'Now playing: %{title}'
+  download_error: 'Failed to download audio from URL'
+  invalid_url: 'Invalid YouTube URL provided'
+  not_in_voice: 'You must be in a voice channel to use this command'
