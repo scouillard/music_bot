@@ -159,13 +159,20 @@ class MusicBot
       #   logger.info "Using cookies from: #{cookies_file}"
       # end
 
-      # Use android_testsuite client - known to have less restrictions
-      # This client is used for YouTube's internal testing and is less likely to be blocked
-      command.insert(-1, '--extractor-args', 'youtube:player_client=android_testsuite')
-      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage,configs')
+      # Use multiple extraction methods for better success rate
+      # Android and iOS clients work without authentication
+      command.insert(-1, '--extractor-args', 'youtube:player_client=android,ios,mweb')
+      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage')
 
-      # Add Android test device user agent
-      command.insert(-1, '--user-agent', 'com.google.android.youtube/19.45.36 (Linux; U; Android 13; en_US) gzip')
+      # Use realistic mobile user agent
+      command.insert(-1, '--user-agent', 'com.google.android.youtube/19.45.36 (Linux; U; Android 13; en_US)')
+
+      # Try extracting cookies from Chromium browser if it exists and has a profile
+      # This would use any existing browser session cookies
+      if File.exist?('/home/botuser/.config/chromium/Default/Cookies')
+        command.insert(-1, '--cookies-from-browser', 'chromium')
+        logger.info 'Using cookies from Chromium browser'
+      end
 
       command << url
 

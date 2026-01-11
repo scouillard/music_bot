@@ -1,7 +1,7 @@
 # Use official Ruby image
 FROM ruby:3.2-slim
 
-# Install system dependencies
+# Install system dependencies including Chromium for browser-based extraction
 RUN apt-get update && apt-get install -y \
     build-essential \
     libsodium-dev \
@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     curl \
     unzip \
+    chromium \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Deno (JavaScript runtime for yt-dlp) - download binary directly
