@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Deno (JavaScript runtime for yt-dlp) - system-wide installation
-RUN curl -fsSL https://deno.land/install.sh | sh && \
-    mv /root/.deno/bin/deno /usr/local/bin/deno && \
+# Install Deno (JavaScript runtime for yt-dlp) - download binary directly
+RUN curl -fsSL https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip -o deno.zip && \
+    unzip deno.zip && \
+    mv deno /usr/local/bin/deno && \
     chmod +x /usr/local/bin/deno && \
+    rm deno.zip && \
     deno --version
 ENV PATH="/usr/local/bin:${PATH}"
 
