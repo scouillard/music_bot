@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'open3'
+require 'json'
 require_relative 'config'
 
 class MusicBot
@@ -132,9 +133,33 @@ class MusicBot
       # Generate unique filename
       timestamp = Time.now.to_i
       output_file = File.join(temp_dir, "audio_#{timestamp}.%(ext)s")
+      cookie_file = File.join(temp_dir, "cookies_#{timestamp}.txt")
 
-      # Download audio using yt-dlp
-      # Use opus format when possible for best Discord compatibility and quality
+      # Step 1: Use Puppeteer to navigate to YouTube and extract cookies
+      # This bypasses bot detection by using a real headless browser
+      logger.info 'Using headless browser to establish session...'
+      extractor_script = File.join(File.dirname(__FILE__), 'youtube_extractor.js')
+
+      puppeteer_cmd = ['node', extractor_script, url, cookie_file]
+      stdout, stderr, status = Open3.capture3(*puppeteer_cmd)
+
+      unless status.success?
+        logger.error "Puppeteer extraction failed: #{stderr}"
+        logger.error "Stdout: #{stdout}"
+        # Fall back to direct yt-dlp if Puppeteer fails
+        return download_audio_fallback(url, temp_dir, timestamp)
+      end
+
+      begin
+        result = JSON.parse(stdout)
+        logger.info "Browser session established: #{result['title']}"
+        logger.info "Cookies saved to: #{result['cookieFile']}"
+      rescue JSON::ParserError => e
+        logger.error "Failed to parse Puppeteer output: #{e.message}"
+        return download_audio_fallback(url, temp_dir, timestamp)
+      end
+
+      # Step 2: Use yt-dlp with the cookies from the browser session
       command = [
         'yt-dlp',
         '-f', 'bestaudio/best',
@@ -142,42 +167,16 @@ class MusicBot
         '--audio-format', 'opus',
         '--audio-quality', '0',
         '--no-playlist',
-        '-o', output_file
+        '--cookies', cookie_file,
+        '-o', output_file,
+        url
       ]
 
-      # Make cookies optional - try without them first (like local setup)
-      # YouTube detection is less aggressive without cookies from data center IPs
-      # cookies_locations = [
-      #   '/app/data/cookies.txt',
-      #   File.expand_path('~/.config/yt-dlp/cookies.txt')
-      # ]
-      #
-      # cookies_file = cookies_locations.find { |f| File.exist?(f) }
-      #
-      # if cookies_file
-      #   command.insert(-1, '--cookies', cookies_file)
-      #   logger.info "Using cookies from: #{cookies_file}"
-      # end
-
-      # Use multiple extraction methods for better success rate
-      # Android and iOS clients work without authentication
-      command.insert(-1, '--extractor-args', 'youtube:player_client=android,ios,mweb')
-      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage')
-
-      # Use realistic mobile user agent
-      command.insert(-1, '--user-agent', 'com.google.android.youtube/19.45.36 (Linux; U; Android 13; en_US)')
-
-      # Try extracting cookies from Chromium browser if it exists and has a profile
-      # This would use any existing browser session cookies
-      if File.exist?('/home/botuser/.config/chromium/Default/Cookies')
-        command.insert(-1, '--cookies-from-browser', 'chromium')
-        logger.info 'Using cookies from Chromium browser'
-      end
-
-      command << url
-
-      logger.info "Starting download..."
+      logger.info 'Starting download with browser session cookies...'
       _stdout, stderr, status = Open3.capture3(*command)
+
+      # Clean up cookie file
+      File.delete(cookie_file) if File.exist?(cookie_file)
 
       unless status.success?
         logger.error "yt-dlp download failed: #{stderr}"
@@ -192,11 +191,50 @@ class MusicBot
         logger.info "Downloaded audio: #{downloaded_file} (#{file_size.round(2)} MB)"
         downloaded_file
       else
-        logger.error "Downloaded file not found"
+        logger.error 'Downloaded file not found'
         nil
       end
     rescue StandardError => e
       logger.error "Error downloading audio: #{e.message}"
+      logger.error e.backtrace.join("\n")
+      # Clean up cookie file on error
+      File.delete(cookie_file) if File.exist?(cookie_file)
+      nil
+    end
+
+    # Fallback method if Puppeteer fails - try direct yt-dlp
+    def download_audio_fallback(url, temp_dir, timestamp)
+      logger.info 'Falling back to direct yt-dlp without browser session...'
+      output_file = File.join(temp_dir, "audio_#{timestamp}.%(ext)s")
+
+      command = [
+        'yt-dlp',
+        '-f', 'bestaudio/best',
+        '--extract-audio',
+        '--audio-format', 'opus',
+        '--audio-quality', '0',
+        '--no-playlist',
+        '-o', output_file,
+        url
+      ]
+
+      _stdout, stderr, status = Open3.capture3(*command)
+
+      unless status.success?
+        logger.error "Fallback yt-dlp also failed: #{stderr}"
+        return nil
+      end
+
+      downloaded_file = Dir.glob(File.join(temp_dir, "audio_#{timestamp}.*")).first
+      if downloaded_file && File.exist?(downloaded_file)
+        file_size = File.size(downloaded_file) / 1024.0 / 1024.0
+        logger.info "Downloaded audio (fallback): #{downloaded_file} (#{file_size.round(2)} MB)"
+        downloaded_file
+      else
+        nil
+      end
+    rescue StandardError => e
+      logger.error "Fallback error: #{e.message}"
       nil
     end
   end
