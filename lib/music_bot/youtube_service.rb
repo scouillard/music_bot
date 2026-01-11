@@ -142,7 +142,7 @@ class MusicBot
         '--audio-format', 'opus',
         '--audio-quality', '0',
         '--no-playlist',
-        # '--remote-components', 'ejs:github',  # Temporarily disabled - might trigger detection
+        '--remote-components', 'ejs:github',  # Required for Deno-based YouTube extraction
         '-o', output_file
       ]
 

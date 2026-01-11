@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Deno (JavaScript runtime for yt-dlp) - system-wide installation
-RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
+RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local bash && \
+    chmod +x /usr/local/bin/deno && \
+    deno --version
 ENV PATH="/usr/local/bin:${PATH}"
 
 # Install yt-dlp (with -U to ensure latest version)
