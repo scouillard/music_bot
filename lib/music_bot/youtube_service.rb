@@ -142,16 +142,33 @@ class MusicBot
         '--audio-format', 'opus',
         '--audio-quality', '0',
         '--no-playlist',
-        '-o', output_file,
-        url
+        # '--remote-components', 'ejs:github',  # Temporarily disabled - might trigger detection
+        '-o', output_file
       ]
 
-      # Add cookies if available
-      cookies_file = File.expand_path('~/.config/yt-dlp/cookies.txt')
-      if File.exist?(cookies_file)
-        command.insert(-2, '--cookies', cookies_file)
-        logger.info "Using cookies from: #{cookies_file}"
-      end
+      # Make cookies optional - try without them first (like local setup)
+      # YouTube detection is less aggressive without cookies from data center IPs
+      # cookies_locations = [
+      #   '/app/data/cookies.txt',
+      #   File.expand_path('~/.config/yt-dlp/cookies.txt')
+      # ]
+      #
+      # cookies_file = cookies_locations.find { |f| File.exist?(f) }
+      #
+      # if cookies_file
+      #   command.insert(-1, '--cookies', cookies_file)
+      #   logger.info "Using cookies from: #{cookies_file}"
+      # end
+
+      # Use newer bypass methods that work better from data center IPs
+      # tv_embedded client is less strict about bot detection
+      command.insert(-1, '--extractor-args', 'youtube:player_client=tv_embedded')
+      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage')
+
+      # Add realistic mobile user agent to reduce bot detection
+      command.insert(-1, '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
+
+      command << url
 
       logger.info "Starting download..."
       _stdout, stderr, status = Open3.capture3(*command)
