@@ -142,7 +142,6 @@ class MusicBot
         '--audio-format', 'opus',
         '--audio-quality', '0',
         '--no-playlist',
-        '--remote-components', 'ejs:github',  # Required for Deno-based YouTube extraction
         '-o', output_file
       ]
 
@@ -160,13 +159,13 @@ class MusicBot
       #   logger.info "Using cookies from: #{cookies_file}"
       # end
 
-      # Use newer bypass methods that work better from data center IPs
-      # tv_embedded client is less strict about bot detection
-      command.insert(-1, '--extractor-args', 'youtube:player_client=tv_embedded')
-      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage')
+      # Use android_testsuite client - known to have less restrictions
+      # This client is used for YouTube's internal testing and is less likely to be blocked
+      command.insert(-1, '--extractor-args', 'youtube:player_client=android_testsuite')
+      command.insert(-1, '--extractor-args', 'youtube:player_skip=webpage,configs')
 
-      # Add realistic mobile user agent to reduce bot detection
-      command.insert(-1, '--user-agent', 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
+      # Add Android test device user agent
+      command.insert(-1, '--user-agent', 'com.google.android.youtube/19.45.36 (Linux; U; Android 13; en_US) gzip')
 
       command << url
 
